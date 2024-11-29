@@ -11,6 +11,10 @@ module.exports = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        geist: ['var(--font-geist-sans)', 'sans-serif'],
+        superkind: ['var(--font-superkind)', 'cursive'],
+      },      
     },
   },
   plugins: [],
