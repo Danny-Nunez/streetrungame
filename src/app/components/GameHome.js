@@ -205,13 +205,11 @@ function Character({
 }
 
 export default function GameHome() {
-
-  
   return (
     <div className="bg-gradient-to-b from-blue-500 to-black min-h-screen flex flex-col gap-0">
       {/* Header */}
-      <div className="flex justify-center mt-4">
-      <div
+      <div className="flex justify-center mt-0 md:mt-4">
+        <div
           className="
             relative
             bg-[url('/items/signback.png')]
@@ -228,89 +226,91 @@ export default function GameHome() {
             w-full
             h-56
             mb-[-110px]
+            mx-2
+
           "
-          
         >
-          <h1 className="text-6xl font-bold text-center text-white p-4 mt-14">Street Run</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-center text-white p-4 mt-16 md:mt-14">
+            Street Run
+          </h1>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex justify-around items-center max-w-screen-lg mx-auto w-full mt-[-40px]">
         {/* First Character */}
-        <div className="w-1/2 h-[700px] p-2 cursor-pointer">
+        <div
+          className="w-1/2 h-[700px] p-2 cursor-pointer hover:scale-105 transition-all duration-300"
+          onClick={() => {
+            window.location.href = "/boy"; // Redirect to the boy page
+          }}
+        >
           <Character
             modelPath="/items/cartoonboyanimated.glb"
             position={[0, 0, 0]}
-            scale={[2.1, 2.1, 2.1]} // Default scale for boy
-            idleAnimationName="Idle"    // Adjust based on actual clip name
-            jumpAnimationName="Jump"    // Adjust based on actual clip name
+            scale={[2.1, 2.1, 2.1]}
+            idleAnimationName="Idle"
+            jumpAnimationName="Jump"
             customMaterial={{
-              // Example: Adjust material properties for better texture visibility
-              roughness: 0.5,     // Adjust as needed
-              metalness: 0.0,     // Adjust as needed
-              emissive: new THREE.Color(0x000000), // No emissive color
-              // Add more material properties as needed
+              roughness: 0.5,
+              metalness: 0.0,
+              emissive: new THREE.Color(0x000000),
             }}
             customLights={[
               {
-                type: 'DirectionalLight',
+                type: "DirectionalLight",
                 color: 0xffffff,
                 intensity: 1.2,
                 position: { x: 5, y: 10, z: 7.5 },
               },
               {
-                type: 'SpotLight',
+                type: "SpotLight",
                 color: 0xffffff,
                 intensity: 0.8,
                 position: { x: -10, y: 15, z: -10 },
               },
-              // Add more lights if necessary
             ]}
           />
-          <Link href="/boy">
-            <p className="text-center mt-[-140px] text-2xl text-white hover:text-green-400">
-              Boy
-            </p>
-          </Link>
+          <p className="text-center mt-[-140px] text-2xl text-white hover:text-green-400">
+            Boy
+          </p>
         </div>
 
         {/* Second Character */}
-        <div className="w-1/2 h-[700px] p-2 cursor-pointer">
+        <div
+          className="w-1/2 h-[700px] p-2 cursor-pointer hover:scale-105 transition-all duration-300"
+          onClick={() => {
+            window.location.href = "/girl"; // Redirect to the girl page
+          }}
+        >
           <Character
             modelPath="/items/girlidle.glb"
             position={[0, 0, 0]}
-            scale={[0.47, 0.47, 0.47]} // Smaller scale for girl
-            idleAnimationName="Armature|mixamo.com|Layer0" // Girl's idle animation name
-            // jumpAnimationName="GirlJump" // Provide if the girl has a jump animation
+            scale={[0.47, 0.47, 0.47]}
+            idleAnimationName="Armature|mixamo.com|Layer0"
             customMaterial={{
-              // Example: Adjust material properties for better texture visibility
-              roughness: 0.5,     // Adjust as needed
-              metalness: 0.0,     // Adjust as needed
-              emissive: new THREE.Color(0x000000), // No emissive color
-              // Add more material properties as needed
+              roughness: 0.5,
+              metalness: 0.0,
+              emissive: new THREE.Color(0x000000),
             }}
             customLights={[
               {
-                type: 'DirectionalLight',
+                type: "DirectionalLight",
                 color: 0xffffff,
                 intensity: 1.2,
                 position: { x: 5, y: 10, z: 7.5 },
               },
               {
-                type: 'SpotLight',
+                type: "SpotLight",
                 color: 0xffffff,
                 intensity: 0.8,
                 position: { x: -10, y: 15, z: -10 },
               },
-              // Add more lights if necessary
             ]}
           />
-          <Link href="/girl"> {/* Add Link if you have a girl route */}
-            <p className="text-center mt-[-140px] text-2xl text-white hover:text-pink-400">
-              Girl
-            </p>
-          </Link>
+          <p className="text-center mt-[-140px] text-2xl text-white hover:text-pink-400">
+            Girl
+          </p>
         </div>
       </div>
       <p className="text-center p-8">Credits: Music by Adrien Nunez</p>
