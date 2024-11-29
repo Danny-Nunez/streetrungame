@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'; // Correct import for App Router
 import { useEffect, useRef, useState } from 'react';
 import { initPlayer } from './Player'; // Note: initPlayer is now async
 import { initEnvironment, updateEnvironment } from './Environment';
+import Hammer from 'react-hammerjs-18';
 import { 
   initObstacles, 
   updateObstacles, 
@@ -48,8 +49,8 @@ export default function GameCanvas() {
 
   // Define the default game state
   const defaultGameState = {
-    speed: 0.4,
-    maxSpeed: 0.6,
+    speed: 0.3,
+    maxSpeed: 0.5,
     gravity: -20, // Adjusted gravity for higher jump
     score: 0,
     coinCount: 0,
@@ -90,6 +91,71 @@ export default function GameCanvas() {
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
   };
+  
+  const handleSwipe = (e) => {
+    switch (e.direction) {
+      case 2: // Swipe Left
+        console.log('Swiped left');
+        setGameState((prev) => ({
+          ...prev,
+          currentLane: Math.max(prev.currentLane - 1, -1), // Move left, limit to leftmost lane
+        }));
+        break;
+      case 4: // Swipe Right
+        console.log('Swiped right');
+        setGameState((prev) => ({
+          ...prev,
+          currentLane: Math.min(prev.currentLane + 1, 1), // Move right, limit to rightmost lane
+        }));
+        break;
+      case 8: // Swipe Up
+        console.log('Swiped up');
+        if (!isJumpingRef.current && !isRollingRef.current) {
+          isJumpingRef.current = true;
+  
+          // Push jump animation to the queue without altering isJumpingRef
+          playAndResetAnimation('jump', 800);
+  
+          jumpVelocityRef.current = 8; // Increased jump velocity for higher jump
+        }
+        break;
+      case 16: // Swipe Down
+        console.log('Swiped down');
+        if (!isRollingRef.current && !isJumpingRef.current) {
+          isRollingRef.current = true;
+  
+          // Push roll animation to the queue with onComplete callback
+          playAndResetAnimation('roll', 1190, () => {
+            setGameState((prev) => ({ ...prev, isSliding: false })); // Reset sliding state
+            isRollingRef.current = false;
+          });
+  
+          setGameState((prev) => ({
+            ...prev,
+            isSliding: true,
+          }));
+        }
+        break;
+      default:
+        break;
+    }
+  };
+  
+  const handleTap = () => {
+    if (loading) {
+      handleStart(); // Start the game and audio
+    }
+  };
+
+  const hammerOptions = {
+    touchAction: 'compute',
+    recognizers: {
+      swipe: { direction: Hammer.DIRECTION_ALL }, // Enable all swipe directions
+      tap: { time: 600, threshold: 100 }, // Customize tap recognizer
+    },
+  };
+  
+  
 
   // Update gameStateRef and manage audio playback based on gameState
   useEffect(() => {
@@ -463,12 +529,23 @@ export default function GameCanvas() {
       )}
 
       {/* Game Canvas and UI */}
-      <audio ref={audioRef} loop>
-        <source src="/keeprunning.mp3" type="audio/mpeg" />
-        Your browser does not support the audio element.
-      </audio>
-      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100vh' }} />
-      <UI gameState={gameState} onRestart={restartGame} onExit={handleExitGame} />
+      <Hammer onSwipe={handleSwipe} options={hammerOptions}>
+      <div>
+        <audio ref={audioRef} loop>
+          <source src="/keeprunning.mp3" type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+        <canvas
+          ref={canvasRef}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: '100vh',
+          }}
+        />
+        <UI gameState={gameState} onRestart={restartGame} onExit={handleExitGame} />
+      </div>
+    </Hammer>
     </>
   );
 }
