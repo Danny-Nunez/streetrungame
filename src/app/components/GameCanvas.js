@@ -48,7 +48,7 @@ export default function GameCanvas() {
 
   // Define the default game state
   const defaultGameState = {
-    speed: 0.3,
+    speed: 0.4,
     maxSpeed: 0.6,
     gravity: -20, // Adjusted gravity for higher jump
     score: 0,
@@ -63,6 +63,9 @@ export default function GameCanvas() {
 
   // Initialize gameState with defaultGameState
   const [gameState, setGameState] = useState(defaultGameState);
+
+  // Loading state for the preloader
+  const [loading, setLoading] = useState(true);
 
   // Refs for jump mechanics
   const isJumpingRef = useRef(false);
@@ -91,13 +94,8 @@ export default function GameCanvas() {
   // Update gameStateRef and manage audio playback based on gameState
   useEffect(() => {
     gameStateRef.current = gameState;
-    if (audioRef.current) {
-      if (gameState.active) {
-        audioRef.current.play().catch((err) => console.warn('Audio play prevented:', err));
-      } else {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0; // Reset to start for the next game
-      }
+    if (audioRef.current && gameState.active) {
+      audioRef.current.play().catch((err) => console.warn('Audio play prevented:', err));
     }
   }, [gameState]);
 
@@ -124,7 +122,7 @@ export default function GameCanvas() {
 
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play();
+      audioRef.current.play().catch(err => console.warn('Audio play prevented:', err));
     }
 
     // Clear the animation queue
@@ -376,6 +374,11 @@ export default function GameCanvas() {
       // Add keyboard controls
       window.addEventListener('keydown', handleKeyDown);
 
+      // Set loading to false after 1500ms
+      setTimeout(() => {
+        setLoading(false);
+      }, 1200);
+
       // Game loop
       const animate = () => {
         const delta = clock.getDelta(); // Get the time delta for consistent movement
@@ -437,8 +440,29 @@ export default function GameCanvas() {
     };
   }, []); // Empty dependency array ensures this runs once on mount
 
+  // Function to handle user interaction to start audio
+  const handleStart = () => {
+    setLoading(false); // Hide preloader
+    if (audioRef.current) {
+      audioRef.current.play().catch((err) => console.warn('Audio play prevented:', err));
+    }
+  };
+
   return (
     <>
+      {/* Preloader Overlay */}
+      {loading && (
+        <div style={styles.preloaderContainer}>
+          <div style={styles.preloaderContent}>
+            <h1>Loading...</h1>
+            {/* <button style={styles.startButton} onClick={handleStart}>
+              Start Game
+            </button> */}
+          </div>
+        </div>
+      )}
+
+      {/* Game Canvas and UI */}
       <audio ref={audioRef} loop>
         <source src="/keeprunning.mp3" type="audio/mpeg" />
         Your browser does not support the audio element.
@@ -448,3 +472,35 @@ export default function GameCanvas() {
     </>
   );
 }
+
+// Inline styles for the preloader and start button
+const styles = {
+  preloaderContainer: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000000cc', // Semi-transparent black background
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999, // Ensure it's on top
+    flexDirection: 'column',
+  },
+  preloaderContent: {
+    color: '#ffffff',
+    fontSize: '2rem',
+    textAlign: 'center',
+    marginBottom: '20px',
+  },
+  startButton: {
+    padding: '10px 20px',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    border: 'none',
+    borderRadius: '5px',
+    backgroundColor: '#ffffff',
+    color: '#000000',
+  },
+};
