@@ -221,16 +221,18 @@ export default function GameCanvas() {
 
   const bind = useGesture({
     onDrag: ({ down, movement: [mx, my], direction: [dx, dy] }) => {
+      console.log("Gesture detected"); // Debugging
+      console.log(`down: ${down}, mx: ${mx}, my: ${my}, dx: ${dx}, dy: ${dy}`);
       if (!down) {
         if (Math.abs(dx) > Math.abs(dy)) {
           if (dx > 0) {
-            // Swipe Right
+            console.log("Swipe Right");
             setGameState((prev) => ({
               ...prev,
               currentLane: Math.min(prev.currentLane + 1, 1), // Limit to rightmost lane
             }));
           } else {
-            // Swipe Left
+            console.log("Swipe Left");
             setGameState((prev) => ({
               ...prev,
               currentLane: Math.max(prev.currentLane - 1, -1), // Limit to leftmost lane
@@ -238,36 +240,15 @@ export default function GameCanvas() {
           }
         } else {
           if (dy > 0) {
-            // Swipe Down (Slide)
-            if (!isRollingRef.current && !isJumpingRef.current) {
-              console.log('Slide initiated');
-              isRollingRef.current = true;
-  
-              playAndResetAnimation('roll', 1190, () => {
-                setGameState((prev) => ({ ...prev, isSliding: false })); // Reset sliding state
-                isRollingRef.current = false;
-              });
-  
-              setGameState((prev) => ({
-                ...prev,
-                isSliding: true,
-              }));
-            }
+            console.log("Swipe Down");
           } else {
-            // Swipe Up (Jump)
-            if (!isJumpingRef.current && !isRollingRef.current) {
-              console.log('Jump initiated');
-              isJumpingRef.current = true;
-  
-              playAndResetAnimation('jump', 800);
-  
-              jumpVelocityRef.current = 8; // Increased jump velocity for higher jump
-            }
+            console.log("Swipe Up");
           }
         }
       }
     },
   });
+  
 
   // Handle keyboard inputs for game controls
   const handleKeyDown = (event) => {
@@ -519,7 +500,19 @@ export default function GameCanvas() {
         <source src="/keeprunning.mp3" type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
-      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100vh' }} />
+      <canvas
+  onTouchStart={(e) => console.log("Touch started", e.touches)}
+  onTouchMove={(e) => console.log("Touch moved", e.touches)}
+  ref={canvasRef}
+  style={{
+    display: 'block',
+    width: '100%',
+    height: '100vh',
+    touchAction: 'none', // Prevent default browser touch behavior
+  }}
+/>
+
+
       <UI gameState={gameState} onRestart={restartGame} onExit={handleExitGame} />
     </>
   );
