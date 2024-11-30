@@ -219,29 +219,61 @@ export default function GameCanvas() {
     }, duration);
   };
 
-  const bind = useGesture({
-    onDrag: ({ down, movement: [mx, my], direction: [dx, dy] }) => {
-      console.log("Gesture detected");
-      console.log(`down: ${down}, mx: ${mx}, my: ${my}, dx: ${dx}, dy: ${dy}`);
-      if (!down) {
-        if (Math.abs(dx) > Math.abs(dy)) {
+  const bind = useGesture(
+    {
+      onDrag: ({ movement: [mx, my], direction: [dx, dy], velocity }) => {
+        console.log("Gesture detected:", { mx, my, dx, dy, velocity });
+  
+        const threshold = 10; // Minimum movement in pixels to detect a swipe
+  
+        // Check if it's a horizontal swipe
+        if (Math.abs(mx) > threshold && Math.abs(mx) > Math.abs(my)) {
           if (dx > 0) {
             console.log("Swipe Right");
-            setGameState((prev) => {
-              const newLane = Math.min(prev.currentLane + 1, 1); // Move to the right, max lane is 1
-              return { ...prev, currentLane: newLane };
-            });
-          } else {
+            setGameState((prev) => ({
+              ...prev,
+              currentLane: Math.min(prev.currentLane + 1, 1), // Move right, max lane = 1
+            }));
+          } else if (dx < 0) {
             console.log("Swipe Left");
-            setGameState((prev) => {
-              const newLane = Math.max(prev.currentLane - 1, -1); // Move to the left, min lane is -1
-              return { ...prev, currentLane: newLane };
-            });
+            setGameState((prev) => ({
+              ...prev,
+              currentLane: Math.max(prev.currentLane - 1, -1), // Move left, min lane = -1
+            }));
           }
         }
-      }
+  
+        // Check if it's a vertical swipe
+        if (Math.abs(my) > threshold && Math.abs(my) > Math.abs(mx)) {
+          if (dy < 0) {
+            console.log("Swipe Up - Jump");
+            if (!isJumpingRef.current && !isRollingRef.current) {
+              isJumpingRef.current = true;
+              playAndResetAnimation('jump', 800); // Jump animation
+              jumpVelocityRef.current = 8; // Adjust for jump height
+            }
+          } else if (dy > 0) {
+            console.log("Swipe Down - Slide");
+            if (!isRollingRef.current && !isJumpingRef.current) {
+              isRollingRef.current = true;
+              playAndResetAnimation('roll', 1190, () => {
+                setGameState((prev) => ({ ...prev, isSliding: false }));
+                isRollingRef.current = false;
+              });
+              setGameState((prev) => ({ ...prev, isSliding: true })); // Update gameState
+            }
+          }
+        }
+      },
     },
-  });
+    {
+      drag: {
+        threshold: 10, // Adjust sensitivity for swipe detection
+        filterTaps: true, // Ignore tap gestures
+        axis: undefined, // Allow free movement detection
+      },
+    }
+  );
   
 
   // Handle keyboard inputs for game controls
