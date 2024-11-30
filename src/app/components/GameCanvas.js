@@ -221,46 +221,44 @@ export default function GameCanvas() {
 
   const bind = useGesture(
     {
-      onDrag: ({ movement: [mx, my], direction: [dx, dy], velocity }) => {
+      onDrag: ({ movement: [mx, my], direction: [dx, dy], velocity, last }) => {
         console.log("Gesture detected:", { mx, my, dx, dy, velocity });
   
-        const threshold = 10; // Minimum movement in pixels to detect a swipe
+        const threshold = 30; // Minimum movement in pixels to detect a swipe
   
-        // Check if it's a horizontal swipe
-        if (Math.abs(mx) > threshold && Math.abs(mx) > Math.abs(my)) {
-          if (dx > 0) {
-            console.log("Swipe Right");
-            setGameState((prev) => ({
-              ...prev,
-              currentLane: Math.min(prev.currentLane + 1, 1), // Move right, max lane = 1
-            }));
-          } else if (dx < 0) {
-            console.log("Swipe Left");
-            setGameState((prev) => ({
-              ...prev,
-              currentLane: Math.max(prev.currentLane - 1, -1), // Move left, min lane = -1
-            }));
-          }
-        }
-  
-        // Check if it's a vertical swipe
-        if (Math.abs(my) > threshold && Math.abs(my) > Math.abs(mx)) {
-          if (dy < 0) {
-            console.log("Swipe Up - Jump");
-            if (!isJumpingRef.current && !isRollingRef.current) {
-              isJumpingRef.current = true;
-              playAndResetAnimation('jump', 800); // Jump animation
-              jumpVelocityRef.current = 8; // Adjust for jump height
-            }
-          } else if (dy > 0) {
-            console.log("Swipe Down - Slide");
-            if (!isRollingRef.current && !isJumpingRef.current) {
-              isRollingRef.current = true;
-              playAndResetAnimation('roll', 1190, () => {
-                setGameState((prev) => ({ ...prev, isSliding: false }));
-                isRollingRef.current = false;
-              });
-              setGameState((prev) => ({ ...prev, isSliding: true })); // Update gameState
+        // Only update state at the end of the swipe gesture
+        if (last) {
+          if (Math.abs(mx) > threshold && Math.abs(mx) > Math.abs(my)) {
+            // Horizontal swipe
+            setGameState((prev) => {
+              if (dx > 0 && prev.currentLane < 1) {
+                console.log("Swipe Right");
+                return { ...prev, currentLane: prev.currentLane + 1 }; // Move right
+              } else if (dx < 0 && prev.currentLane > -1) {
+                console.log("Swipe Left");
+                return { ...prev, currentLane: prev.currentLane - 1 }; // Move left
+              }
+              return prev; // No change
+            });
+          } else if (Math.abs(my) > threshold && Math.abs(my) > Math.abs(mx)) {
+            // Vertical swipe
+            if (dy < 0) {
+              console.log("Swipe Up - Jump");
+              if (!isJumpingRef.current && !isRollingRef.current) {
+                isJumpingRef.current = true;
+                playAndResetAnimation("jump", 800); // Jump animation
+                jumpVelocityRef.current = 8; // Adjust for jump height
+              }
+            } else if (dy > 0) {
+              console.log("Swipe Down - Slide");
+              if (!isRollingRef.current && !isJumpingRef.current) {
+                isRollingRef.current = true;
+                playAndResetAnimation("roll", 1190, () => {
+                  setGameState((prev) => ({ ...prev, isSliding: false }));
+                  isRollingRef.current = false;
+                });
+                setGameState((prev) => ({ ...prev, isSliding: true })); // Update gameState
+              }
             }
           }
         }
@@ -274,6 +272,7 @@ export default function GameCanvas() {
       },
     }
   );
+  
   
 
   // Handle keyboard inputs for game controls
