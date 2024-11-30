@@ -221,28 +221,22 @@ export default function GameCanvas() {
 
   const bind = useGesture({
     onDrag: ({ down, movement: [mx, my], direction: [dx, dy] }) => {
-      console.log("Gesture detected"); // Debugging
+      console.log("Gesture detected");
       console.log(`down: ${down}, mx: ${mx}, my: ${my}, dx: ${dx}, dy: ${dy}`);
       if (!down) {
         if (Math.abs(dx) > Math.abs(dy)) {
           if (dx > 0) {
             console.log("Swipe Right");
-            setGameState((prev) => ({
-              ...prev,
-              currentLane: Math.min(prev.currentLane + 1, 1), // Limit to rightmost lane
-            }));
+            setGameState((prev) => {
+              const newLane = Math.min(prev.currentLane + 1, 1); // Move to the right, max lane is 1
+              return { ...prev, currentLane: newLane };
+            });
           } else {
             console.log("Swipe Left");
-            setGameState((prev) => ({
-              ...prev,
-              currentLane: Math.max(prev.currentLane - 1, -1), // Limit to leftmost lane
-            }));
-          }
-        } else {
-          if (dy > 0) {
-            console.log("Swipe Down");
-          } else {
-            console.log("Swipe Up");
+            setGameState((prev) => {
+              const newLane = Math.max(prev.currentLane - 1, -1); // Move to the left, min lane is -1
+              return { ...prev, currentLane: newLane };
+            });
           }
         }
       }
@@ -328,6 +322,19 @@ export default function GameCanvas() {
     }
   };
 
+  const resizeCamera = () => {
+    if (camera) {
+      if (window.innerWidth <= 768) {
+        // Mobile settings
+        camera.position.set(0, 5, 15);
+      } else {
+        // Desktop settings
+        camera.position.set(0, 5, 8);
+      }
+      camera.lookAt(0, 4, 0); // Ensure camera is looking at the player
+    }
+  };
+
   // Initialize the game scene, player, environment, obstacles, and coins
   useEffect(() => {
     let sceneInstance;
@@ -343,7 +350,7 @@ export default function GameCanvas() {
 
       // Camera setup
       camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 5, 8);
+      resizeCamera(); // Set initial camera position based on device size
 
       // Renderer setup
       renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true });
@@ -488,43 +495,59 @@ export default function GameCanvas() {
         <div style={styles.preloaderContainer}>
           <div style={styles.preloaderContent}>
             <h1>Loading...</h1>
-            {/* <button style={styles.startButton} onClick={handleStart}>
-              Start Game
-            </button> */}
           </div>
         </div>
       )}
-
-      {/* Game Canvas and UI */}
+  
+      {/* Game Canvas */}
       <audio ref={audioRef} loop>
         <source src="/keeprunning.mp3" type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
       <canvas
-  onClick={() => console.log("Canvas clicked")}
-  onMouseDown={() => console.log("Mouse down on canvas")}
-  onMouseMove={() => console.log("Mouse move on canvas")}
-  onTouchStart={(e) => console.log("Touch started", e.touches)}
-  onTouchMove={(e) => console.log("Touch moved", e.touches)}
-  {...bind()} // Attach gesture binding
-  ref={canvasRef}
-  style={{
-    display: 'block',
-    width: '100%',
-    height: '100vh',
-    touchAction: 'none',
-    backgroundColor: 'rgba(255, 0, 0, 0.1)', // Light red overlay for visibility
-    position: 'fixed', // Fixed position to cover the viewport
-    top: 0,
-    left: 0,
-    zIndex: 10000, // High z-index to stay on top
-  }}
-/>
-
+        ref={canvasRef}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: '100vh',
+          touchAction: 'none',
+          backgroundColor: 'rgba(255, 0, 0, 0.1)', // Light red overlay for visibility
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 1, // Below the gesture layer
+        }}
+      />
+  
+      {/* Gesture Layer */}
+      <div
+        {...bind()} // Attach gesture binding here
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          touchAction: 'none',
+          zIndex: 30, // Above the canvas, below UI
+        }}
+      ></div>
+  
+      {/* Game Over or UI */}
+      {!gameState.active && (
+        <div style={styles.gameOverContainer}>
+          <h1>Game Over</h1>
+          <button onClick={restartGame} style={styles.restartButton}>
+            Restart Game
+          </button>
+        </div>
+      )}
+  
+      {/* UI Controls */}
       <UI gameState={gameState} onRestart={restartGame} onExit={handleExitGame} />
     </>
   );
-}
+}  
 
 // Inline styles for the preloader and start button
 const styles = {
