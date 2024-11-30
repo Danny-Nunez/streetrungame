@@ -501,17 +501,25 @@ export default function GameCanvas() {
         Your browser does not support the audio element.
       </audio>
       <canvas
+  onClick={() => console.log("Canvas clicked")}
+  onMouseDown={() => console.log("Mouse down on canvas")}
+  onMouseMove={() => console.log("Mouse move on canvas")}
   onTouchStart={(e) => console.log("Touch started", e.touches)}
   onTouchMove={(e) => console.log("Touch moved", e.touches)}
+  {...bind()} // Attach gesture binding
   ref={canvasRef}
   style={{
     display: 'block',
     width: '100%',
     height: '100vh',
-    touchAction: 'none', // Prevent default browser touch behavior
+    touchAction: 'none',
+    backgroundColor: 'rgba(255, 0, 0, 0.1)', // Light red overlay for visibility
+    position: 'fixed', // Fixed position to cover the viewport
+    top: 0,
+    left: 0,
+    zIndex: 10000, // High z-index to stay on top
   }}
 />
-
 
       <UI gameState={gameState} onRestart={restartGame} onExit={handleExitGame} />
     </>
